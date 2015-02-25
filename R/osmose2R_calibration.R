@@ -50,9 +50,9 @@ getOsmoseParameters = function(parameters, constants) {
     
     # flux inmigration
     flux.mass   = 1e6*parameters["flux.mass", species]
-    flux.age    = parameters["flux.age", species]
-    flux.length = parameters["flux.length", species]
     flux.par    = parameters[c("flux.par1", "flux.par2"), species]
+    
+    # catchability
     q           = 10^(-parameters[c("q_index1", "q_index2"), species])
     
     access = if(all(c(species, plankton) %in% rownames(parameters))) {
@@ -69,6 +69,13 @@ getOsmoseParameters = function(parameters, constants) {
   names(output$selectivity.type) = output$species
   names(output$selectivity.by) = output$species
   names(output$fishery) = output$species
+  # migration parameters
+  names(output$migration.by) = output$species
+  names(output$migration.type) = output$species
+  names(output$M50) = output$species
+  names(output$M75) = output$species
+  names(output$Mmin) = output$species
+  names(output$Mmax) = output$species
 
   
   return(output)
@@ -174,6 +181,24 @@ osmoseGrowth = function(sp, par, n=100, plot=FALSE, add=FALSE, ...) {
   l[age<=vb.thr] = l2[age<=vb.thr]
   
   return(l)
+  
+}
+
+.osmoseGrowthInv = function(length, par) {
+  
+  Linf    = par$Linf
+  k       = par$k
+  t0      = par$t0
+  vb.thr  = par$vb.thr
+  egg     = if(!is.null(par$egg.size)) par$egg.size else 0
+  lthr    = Linf*(1-exp(-k*(vb.thr-t0)))
+  
+  age     = t0 - (1/k)*log(1-length/Linf)
+  age2    = vb.thr*(length-egg)/(lthr-egg)
+  
+  age[length<=lthr] = age2[length<=lthr]
+  
+  return(age)
   
 }
 
@@ -283,6 +308,12 @@ num3 = function(x) {
 }
 
 
+.selectivity.equilibrium = function(x, M, tiny=1e-6) {
+  selec = exp(-M*x)
+  names(selec) = x
+  return(selec)
+}
+
 calculateSelectivity = function(par, n=1, tiny=1e-6) {
 
   x = switch(par$by, 
@@ -353,6 +384,35 @@ getSelectivityParameters = function(par, sp) {
   
 }
 
+getMigrationDistributionParameters = function(par, sp) {
+  
+  output = list()
+  output = within(output, {
+    # migration model
+    by         = par$migration.by[sp]
+    type       = par$migration.type[sp]
+    # life history
+    longevity  = par$longevity[sp]
+    Linf       = par$Linf[sp]
+    k          = par$k[sp]
+    t0         = par$t0[sp]
+    vb.thr     = par$vb.thr[sp]
+    egg.size   = par$egg.size[sp]
+    mortality  = par$M.proxy # to change for a more standard name
+    a          = par$c[sp]
+    b          = par$b[sp]
+    # migration distribution
+    M50       = par$M50[sp]
+    M75       = par$M75[sp]
+    Mmin      = par$Mmin[sp]
+    Mmax      = par$Mmax[sp]
+    
+  })
+  
+  return(output)
+  
+}
+
 getGrowthParameters = function(par, sp) {
   
   output = list()
@@ -376,6 +436,7 @@ getSelectivity = function(par, sp, n=1, tiny=1e-6) {
   out = calculateSelectivity(par=getSelectivityParameters(par=par, sp=sp), n=n, tiny=tiny)
   return(out)
 }
+
 
 isHarvested = function(par, sp) {
   output = par$fishery[sp]
@@ -409,6 +470,90 @@ writeFishingFiles = function(par, output="input/fishing", n=1, tiny=1e-6, type="
   
   return(invisible(fishing))
 }
+
+writeMigrationFluxFiles = function(par, output="input/flux", n=1, tiny=1e-6) {
+  
+  if(is.null(par$flux.mass)) return(invisible())
+
+  migration = NULL
+  
+  for(isp in par$species) {
+    
+    if(par$flux.mass[isp] != 0) {
+      
+      B.flux     = getMigrationFlux(par=par, sp=isp) 
+      flux.dist  = getFluxDistribution(par=par, sp=isp, n=n, tiny=tiny)
+      Flux       = B.flux %o% flux.dist
+    
+      migration  = cbind(migration, B.flux)
+      
+      write.osmose(Flux, file=file.path(output, paste0("flux-", isp, ".csv")))
+      
+    } else {
+      
+      migration  = cbind(migration, rep(0, par$T*par$dt))
+      
+    }
+    
+  }
+  
+  migration = as.data.frame(migration)
+  colnames(migration) = par$species
+  
+  return(invisible(migration))
+}
+
+getFluxDistribution = function(par, sp, n=1, tiny=1e-6) {
+  out = calculateFluxDistribution(par=getMigrationDistributionParameters(par=par, sp=sp), 
+                                  n=n, tiny=tiny)
+  return(out)
+}
+
+calculateFluxDistribution = function(par, n=1, tiny=1e-6) {
+
+  x = switch(par$by, 
+             size   = head(pretty(c(0, par$Linf), n=20*n), -1),
+             age    = head(pretty(c(0, par$longevity), n=10*n), -1),
+             stop("Invalid selectivity type: by must be 'age' or 'size' ")
+  )
+
+  if(par$by=="age")  {
+    age  = x
+    size = .osmoseGrowth(age=age, par=par)
+  }
+  
+  if(par$by=="size") {
+    age  = .osmoseGrowthInv(length=x, par=par) 
+    size = x
+  }
+
+  size2 = (size + c(size[-1], par$Linf))/2
+  age2  = (age + c(age[-1], par$longevity))/2
+  weight = par$a*size2^par$b
+  
+  par$M75 = max(1.01*par$M50, par$M75)
+  
+  out = switch(par$type,
+               log         = .selectivity.log(x=size2, L50=par$M50, L75=par$M75, tiny=tiny),
+               norm        = .selectivity.norm(x=size2, L50=par$M50, L75=par$M75, tiny=tiny),
+               lnorm       = .selectivity.lnorm(x=size2, L50=par$M50, L75=par$M75, tiny=tiny),
+               edge        = .selectivity.edge(x=size2, L50=par$M50),
+               uniform     = .selectivity.edge(x=size2, L50=0),
+               equilibrium = .selectivity.equilibrium(x=age2, M=par$M),
+               null        = rep(1, len=length(x)),
+               stop("Invalid migration 'type'. See help.")
+  )
+  
+  names(out) = x
+  
+  out[x<par$Mmin | x>par$Mmax] = 0
+  out = out*weight
+  out = out/sum(out, na.rm=TRUE)
+  
+  return(out)
+  
+}
+
 
 writeLarvalMortalityFiles = function(par, output="input/larval", type="modelA") {
   
@@ -445,24 +590,6 @@ writePlanktonAccessibilityFiles = function(par, output="input/plankton", type="p
   return(invisible(plkaccess))
 }
 
-writeMigrationFluxFiles = function(par, output="input/flux") {
-
-  if(is.null(par$flux.mass)) return(invisible())
-    
-  for(isp in par$species) {
-    
-    if(par$flux.mass[isp] != 0) {
-      
-      B.flux     = getMigrationFlux(par=par, sp=isp) 
-      
-      write.osmose(B.flux, file=file.path(output, paste0("flux-interannual-", isp, ".csv")))
-      
-    }
-    
-  }
-  
-  return(invisible(B.flux))
-}
 
 writeAccesibilityFile = function(par, file="input/predation/predation-accessibility.csv") {
   if(!is.null(par$access)) write.osmose(x=par$access, file=file)
