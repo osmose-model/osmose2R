@@ -138,6 +138,12 @@ plot.osmose = function(x, type, ...) {
   switch(type,
          biomass = plot(object=x$global$biomass, ...),
          yield   = plot(object=x$global$yield, ...),
+         yieldN  = plot(object=x$global$yieldN, ...),
+         abundance   = plot(object=x$global$abundance, ...),
+         meanTL      = plot(object=x$trophic$meanTL, ...),
+         meanTLCatch = plot(object=x$trophic$meanTLCatch, ...),
+         meanSize    = plot(object=x$size$meanSize, ...),
+         meanSizeCatch = plot(object=x$size$meanSizeCatch, ...),
          error("Plot type not defined."))
   
   return(invisible())
