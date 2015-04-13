@@ -85,7 +85,7 @@ loadOsmoseParameters = function(File,path=NULL){
     return(list(Value))
   }
 
-.getParameters<-function(OsmoseParameters,par,what=NULL){
+getParameters<-function(OsmoseParameters,par,what=NULL){
   
   if(!is.null(what)){
     
