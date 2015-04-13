@@ -1,9 +1,6 @@
 
 osmose2R.v3r0 = function(path=NULL, species.names=NULL, ...) {
-    if(is.null(path) & interactive()) {
-      path = choose.dir(caption="Select OSMOSE outputs folder")
-    }
-    if(is.null(path)) stop("No path has been provided.")
+
     
     # General  
     pop = list(
