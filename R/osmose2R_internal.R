@@ -28,6 +28,7 @@
 #   mat = as.matrix(out)
 #   out[is.na(mat) & !is.nan(mat)] = Inf
 #   out[is.na(mat) & is.nan(mat)] = NA
+  return(out)
 }
 
 
