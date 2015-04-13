@@ -1,11 +1,12 @@
 Package: osmose2R
 Type: Package
 Title: Utilities to analize OSMOSE outputs within R.
-Version: 0.2
+Version: 0.3
 Date: 2013-03-07
 Author: Ricardo Oliveros-Ramos
 Maintainer: Ricardo Oliveros-Ramos <ricardo.oliveros@gmail.com>
 Description: Capture and analize OSMOSE outputs and make main plot and table summaries.
+Depends: calibrationEA, stringr, R.utils
 License: TBD.
-Depends: calibrationEA
 ByteCompile: TRUE
+Packaged: 2015-02-25 17:33:07 UTC; Ricardo

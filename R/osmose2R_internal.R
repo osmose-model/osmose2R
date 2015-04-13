@@ -52,12 +52,17 @@
   return(x)
 }
 
-
-
-.errorReadingOuputs = function(e) {
+.errorReadingOutputs = function(e) {
   warning(e)
   return(invisible(NULL))
 }
+
+.warningReadingOutputs = function(type) {
+  e = sprintf("File type '%s' is not recognized by Osmose2R", type)
+  warning(e)
+  return(invisible(NULL))
+}
+
 
 .readFilesList = function(files, path, type, ...) {
   output = tryCatch(
@@ -72,6 +77,7 @@
            meanSizeCatch   =  .read_1D(files=files, path=path, ...),
            biomassPredPreyIni =  .read_1D(files=files, path=path, ...),
            predatorPressure          = .read_2D(files=files, path=path, ...),
+           dietMatrix                = .read_2D(files=files, path=path, ...),
            AgeSpectrumSpeciesB       = .read_2D(files=files, path=path, ...),
            AgeSpectrumSpeciesN       = .read_2D(files=files, path=path, ...),
            AgeSpectrumSpeciesYield   = .read_2D(files=files, path=path, ...),
@@ -81,8 +87,31 @@
            SizeSpectrumSpeciesYield  = .read_2D(files=files, path=path, ...),
            SizeSpectrumSpeciesYieldN = .read_2D(files=files, path=path, ...),
            mortalityRate             = .read_MortStage(files=files, path=path, ...),
-           NULL), 
-    error = .errorReadingOuputs)
+           mortalityRateDistribByAge = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+           mortalityRateDistribBySize = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+           # osmose 3r1
+           abundanceDistribBySize         = .read_2D(files=files, path=path, ...),
+           biomasDistribBySize            = .read_2D(files=files, path=path, ...),
+           naturalMortalityDistribBySize  = .read_2D(files=files, path=path, ...),
+           naturalMortalityNDistribBySize = .read_2D(files=files, path=path, ...),
+           yieldDistribBySize             = .read_2D(files=files, path=path, ...),
+           yieldNDistribBySize            = .read_2D(files=files, path=path, ...),
+           abundanceDistribByAge          = .read_2D(files=files, path=path, ...),
+           biomasDistribByAge             = .read_2D(files=files, path=path, ...),
+           meanSizeDistribByAge           = .read_2D(files=files, path=path, ...),
+           naturalMortalityDistribByAge   = .read_2D(files=files, path=path, ...),
+           naturalMortalityNDistribByAge  = .read_2D(files=files, path=path, ...),
+           yieldDistribByAge              = .read_2D(files=files, path=path, ...),
+           yieldNDistribByAge             = .read_2D(files=files, path=path, ...),
+           biomasDistribByTL              = .read_2D(files=files, path=path, ...),
+           dietMatrixbyAge                = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           dietMatrixbySize               = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           meanTLDistribByAge             = .read_2D(files=files, path=path, ...),
+           meanTLDistribBySize            = .read_2D(files=files, path=path, ...),
+           predatorPressureDistribByAge   = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           predatorPressureDistribBySize  = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           .warningReadingOutputs(type)), 
+    error = .errorReadingOutputs)
   
   return(output)
 }
