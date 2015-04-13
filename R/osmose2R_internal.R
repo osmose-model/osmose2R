@@ -87,8 +87,13 @@
            SizeSpectrumSpeciesYield  = .read_2D(files=files, path=path, ...),
            SizeSpectrumSpeciesYieldN = .read_2D(files=files, path=path, ...),
            mortalityRate             = .read_MortStage(files=files, path=path, ...),
+<<<<<<< HEAD
            mortalityRateDistribByAge = .read_MortStagebyAgeorSize(files=files, path=path, ...),
            mortalityRateDistribBySize = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+=======
+           mortalityRateDistribByAge = .read_2D(files=files, path=path, ...),
+           mortalityRateDistribBySize = .read_2D(files=files, path=path, ...),
+>>>>>>> 0c90d79fedebbe933172f06f48ccdd56a0080808
            # osmose 3r1
            abundanceDistribBySize         = .read_2D(files=files, path=path, ...),
            biomasDistribBySize            = .read_2D(files=files, path=path, ...),
@@ -104,12 +109,21 @@
            yieldDistribByAge              = .read_2D(files=files, path=path, ...),
            yieldNDistribByAge             = .read_2D(files=files, path=path, ...),
            biomasDistribByTL              = .read_2D(files=files, path=path, ...),
+<<<<<<< HEAD
            dietMatrixbyAge                = .read_2D_ByAgeorSize(files=files, path=path, ...),
            dietMatrixbySize               = .read_2D_ByAgeorSize(files=files, path=path, ...),
            meanTLDistribByAge             = .read_2D(files=files, path=path, ...),
            meanTLDistribBySize            = .read_2D(files=files, path=path, ...),
            predatorPressureDistribByAge   = .read_2D_ByAgeorSize(files=files, path=path, ...),
            predatorPressureDistribBySize  = .read_2D_ByAgeorSize(files=files, path=path, ...),
+=======
+           dietMatrixbyAge                = .read_2D(files=files, path=path, ...),
+           dietMatrixbySize               = .read_2D(files=files, path=path, ...),
+           meanTLDistribByAge             = .read_2D(files=files, path=path, ...),
+           meanTLDistribBySize            = .read_2D(files=files, path=path, ...),
+           predatorPressureDistribByAge   = .read_2D(files=files, path=path, ...),
+           predatorPressureDistribBySize  = .read_2D(files=files, path=path, ...),
+>>>>>>> 0c90d79fedebbe933172f06f48ccdd56a0080808
            .warningReadingOutputs(type)), 
     error = .errorReadingOutputs)
   
