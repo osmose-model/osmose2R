@@ -1,3 +1,22 @@
+# osmose2R ----------------------------------------------------------------
+osmose2R =  function(path=NULL, version="v3r2", species.names=NULL, ...) {
+  if(is.null(path) & interactive()) {
+    path = choose.dir(caption="Select OSMOSE outputs folder")
+  }
+  if(is.null(path)) stop("No path has been provided.")
+  
+  output = switch(version, 
+                  v3r0 = osmose2R.v3r0(path=path, species.names=species.names, ...),
+                  v3r1 = osmose2R.v3r1(path=path, species.names=species.names, ...),
+                  v3r2 = osmose2R.v3r2(path=path, species.names=species.names, ...),
+                  stop(sprintf("Incorrect osmose version %s", version))
+  )
+  class(output) = "osmose"
+  return(output)
+}
+
+
+
 
 osmose2R.v3r0 = function(path=NULL, species.names=NULL, ...) {
 
