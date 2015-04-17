@@ -1,6 +1,6 @@
 
 
-loadOsmoseParameters = function(File,path=NULL){
+loadOsmoseParameters = function(File, path=NULL){
     
   require(stringr)
   require(R.utils)
@@ -19,7 +19,7 @@ loadOsmoseParameters = function(File,path=NULL){
   
   Lines = readLines(File)
   
-  Lines_trim = lapply(Lines,str_trim)
+  Lines_trim = lapply(Lines, str_trim)
   Lines_trim[grep("^[[:punct:]]",Lines_trim)]=NULL
   Lines_trim = Lines_trim[nchar(Lines_trim)!=0]
   Separators = sapply(Lines_trim,.guessSeparator)

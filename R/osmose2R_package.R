@@ -21,7 +21,7 @@ osmose2R =  function(path=NULL, version="v3r2", species.names=NULL, ...) {
 # methods for 'osmose' class ----------------------------------------------
  
 
-plot.osmose = function(x, type, ...) {
+plot.osmose = function(x, type="biomass", ...) {
   
   switch(type,
          biomass = plot(object=x$global$biomass, ...),
@@ -60,7 +60,11 @@ getVar =
 getVar.osmose =
   function(object, var, type="global", expected=TRUE, ...) {
     out = object[[type]][[var]]
-    if(expected) out = apply(out, c(1,2), mean, na.rm=TRUE)
+     
+    xclass = "list" %in% class(out)
+    if(isTRUE(!xclass) & isTRUE(expected))
+      out = apply(out, c(1,2), mean, na.rm=TRUE)
+    
     return(out)
   }
 

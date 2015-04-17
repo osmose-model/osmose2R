@@ -49,7 +49,7 @@ getOsmoseParameters = function(parameters, constants) {
     L.seasonal  = parameters[c("L.seasonal1", "L.seasonal2", "L.seasonal3"), species]
     
     # flux inmigration
-    flux.mass   = 1e6*parameters["flux.mass", species]
+    flux.mass   = scale*parameters["flux.mass", species]
     flux.par    = parameters[c("flux.par1", "flux.par2"), species]
     
     # catchability
@@ -68,6 +68,7 @@ getOsmoseParameters = function(parameters, constants) {
   names(output$flux.type) = output$species
   names(output$selectivity.type) = output$species
   names(output$selectivity.by) = output$species
+  names(output$maturity.by) = output$species
   names(output$fishery) = output$species
   # migration parameters
   names(output$migration.by) = output$species
@@ -89,7 +90,7 @@ setCalibrationParameters = function(par, conf) {
               "species.vonbertalanffy.threshold.age", "species.t0", 
               "species.length2weight.allometric.power", 
               "species.length2weight.condition.factor",
-              "species.maturity.size", "flux.incoming.annual.biomass",
+              "species.maturity.", "flux.incoming.annual.biomass",
               "flux.incoming.age", "flux.incoming.size")
   
   pars.plk = "plankton.accessibility2fish"
@@ -97,6 +98,8 @@ setCalibrationParameters = function(par, conf) {
   for(isp in par$species) {
     
     n = getSpNo(isp, par$species)
+    matCode = paste0(pars.sp[10], par$maturity.by[isp])
+    
     # write species parameters
     conf[[paste0(pars.sp[1], ".sp", n)]] = as.numeric(par$B0[isp])
     conf[[paste0(pars.sp[2], ".sp", n)]] = as.numeric(par$M.base[isp])
@@ -107,7 +110,7 @@ setCalibrationParameters = function(par, conf) {
     conf[[paste0(pars.sp[7], ".sp", n)]] = as.numeric(par$t0[isp])
     conf[[paste0(pars.sp[8], ".sp", n)]] = as.numeric(par$b[isp])
     conf[[paste0(pars.sp[9], ".sp", n)]] = as.numeric(par$c[isp])
-    conf[[paste0(pars.sp[10], ".sp", n)]] = as.numeric(par$maturity[isp])
+    conf[[paste0(matCode   , ".sp", n)]] = as.numeric(par$maturity[isp])
     conf[[paste0(pars.sp[11], ".sp", n)]] = setFluxBiomass(par$flux.mass[isp])
     conf[[paste0(pars.sp[12], ".sp", n)]] = as.numeric(par$flux.age[isp])
     conf[[paste0(pars.sp[13], ".sp", n)]] = as.numeric(par$flux.length[isp])
