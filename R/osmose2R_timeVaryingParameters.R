@@ -133,7 +133,7 @@ randomSeasonalVariates = function(T, min=0.01, max=0.05) {
 }
 
 calculateMigrationFlux = function(base, par, type, T, dt, proxy=NA) {
-  
+#TO_DO: add constant flux and seasonal flux 
     output = switch(type,
                     gaussian    = gaussianFlux(base=base, par=par, T=T, dt=dt),
                     linear      = linearFlux(base=base, par=par, T=T, dt=dt),
