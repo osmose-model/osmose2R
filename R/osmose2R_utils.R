@@ -63,7 +63,8 @@ aggregatebySize = function(x, by=NULL, FUN=sum) {
 }
 
 
-formatCaL = function(x, crop=NULL, bin=NULL, freq=NULL, by=NULL, factor=1, start=0, ...) {
+formatCaL = function(x, crop=NULL, bin=NULL, freq=NULL, by=NULL, factor=1, 
+                     start=0, na.rm=FALSE, ...) {
   
   sizes = as.numeric(colnames(x))
   times = as.numeric(rownames(x))
@@ -76,9 +77,9 @@ formatCaL = function(x, crop=NULL, bin=NULL, freq=NULL, by=NULL, factor=1, start
     s2 = which(sizes >= crop[1] & sizes < crop[2])
     s3 = which(sizes >= crop[2])
     
-    s1 = apply(x[, s1, drop=FALSE], 1, sum)
+    s1 = apply(x[, s1, drop=FALSE], 1, sum, na.rm=na.rm)
     s2 = x[, s2, drop=FALSE]
-    s3 = apply(x[, s3, drop=FALSE], 1, sum)
+    s3 = apply(x[, s3, drop=FALSE], 1, sum, na.rm=na.rm)
     
     s2[,1]         = s2[,1] + s1
     s2[, ncol(s2)] = s2[, ncol(s2)] + s3
