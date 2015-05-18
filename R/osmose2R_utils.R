@@ -150,3 +150,4 @@ countMapsArea = function(path, pos=2) {
   out = do.call(cbind, tapply(maps, INDEX=spMap, FUN=.countOnes, sep=";"))
   return(out)
 }
+

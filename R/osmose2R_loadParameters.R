@@ -95,3 +95,4 @@ getParameters<-function(OsmoseParameters,par,what=NULL){
   OsmoseParameters[[tolower(par)]]
   
   }
+}
