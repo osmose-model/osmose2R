@@ -1,5 +1,4 @@
 
-
 loadOsmoseParameters = function(File,path=NULL){
     
   require(stringr)
@@ -96,4 +95,3 @@ getParameters<-function(OsmoseParameters,par,what=NULL){
   OsmoseParameters[[tolower(par)]]
   
   }
-}

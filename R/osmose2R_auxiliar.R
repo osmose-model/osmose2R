@@ -43,7 +43,7 @@ readOsmoseFiles = function(path, type, bySpecies=FALSE, ...) {
       
     }
     
-  if(!is.null(output)) class(output) = xclass
+  if(!is.null(output)) class(output) = c(xclass, class(output))
   
     return(output)
   

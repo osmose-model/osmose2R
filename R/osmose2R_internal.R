@@ -90,8 +90,10 @@
            mortalityRate             = .read_MortStage(files=files, path=path, ...),
 
            # osmose 3r1
-           mortalityRateDistribByAge = .read_MortStagebyAgeorSize(files=files, path=path, ...),
-           mortalityRateDistribBySize = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+#            mortalityRateDistribByAge = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+#            mortalityRateDistribBySize = .read_MortStagebyAgeorSize(files=files, path=path, ...),
+           mortalityRateDistribByAge      = .read_2D(files=files, path=path, ...),
+           mortalityRateDistribBySize     = .read_2D(files=files, path=path, ...),
            abundanceDistribBySize         = .read_2D(files=files, path=path, ...),
            biomasDistribBySize            = .read_2D(files=files, path=path, ...),
            naturalMortalityDistribBySize  = .read_2D(files=files, path=path, ...),
@@ -106,12 +108,14 @@
            yieldDistribByAge              = .read_2D(files=files, path=path, ...),
            yieldNDistribByAge             = .read_2D(files=files, path=path, ...),
            biomasDistribByTL              = .read_2D(files=files, path=path, ...),
-           dietMatrixbyAge                = .read_2D_ByAgeorSize(files=files, path=path, ...),
-           dietMatrixbySize               = .read_2D_ByAgeorSize(files=files, path=path, ...),
+#            dietMatrixbyAge                = .read_2D_ByAgeorSize(files=files, path=path, ...),
+#            dietMatrixbySize               = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           dietMatrixbyAge                = .read_2D(files=files, path=path, ...),
+           dietMatrixbySize               = .read_2D(files=files, path=path, ...),
            meanTLDistribByAge             = .read_2D(files=files, path=path, ...),
            meanTLDistribBySize            = .read_2D(files=files, path=path, ...),
-           predatorPressureDistribByAge   = .read_2D_ByAgeorSize(files=files, path=path, ...),
-           predatorPressureDistribBySize  = .read_2D_ByAgeorSize(files=files, path=path, ...),
+           predatorPressureDistribByAge   = .read_2D(files=files, path=path, ...),
+           predatorPressureDistribBySize  = .read_2D(files=files, path=path, ...),
            .warningReadingOutputs(type)), 
     error = .errorReadingOutputs)
   
@@ -180,7 +184,7 @@
       dnames = dimnames(y)[1:3]
       dim(y) = dim(y)[-length(dim(y))]
       dimnames(y) = dnames
-      output[[i]] = y
+      output[[i]] = drop(y)
     }
     
     names(output) = slices
@@ -243,7 +247,6 @@
   
   return(x)
 }
-
 
 .rewriteOutputs = function(path) {
   dir.create(file.path(path, "osmose2R"))
