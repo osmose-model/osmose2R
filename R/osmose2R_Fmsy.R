@@ -31,11 +31,13 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   if(!is.null(getParameters(Param,paste0("mortality.fishing.recruitment.age.sp",sp)))){
     if(getParameters(Param,paste0("mortality.fishing.recruitment.age.sp",sp))!="null"){
       selectivity.by = "age"
+      IsSeasonal = TRUE
     }
   }
   if(!is.null(getParameters(Param,paste0("mortality.fishing.recruitment.size.sp",sp)))){
     if(getParameters(Param,paste0("mortality.fishing.recruitment.size.sp",sp))!="null"){
       selectivity.by = "size"
+      IsSeasonal = TRUE
     }
   }
   #par$selectivity.type = selectivity.type
@@ -48,10 +50,14 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   #par$F.month = read.csv(getParameters(Param,paste0("mortality.fishing.season.distrib.file.sp",sp)),sep=";") # read the seasonality file
   
   
-  
-  fishing.file = getParameters(Param,paste0("mortality.fishing.rate.byDt.by",selectivity.by,".file.sp",sp))
-  F.seasonal = read.csv(fishing.file,sep=";")
-  fishing.folder = normalizePath(dirname(fishing.file))
+  if(IsSeasonal){
+    fishing.file = getParameters(Param,paste0("mortality.fishing.rate.byDt.by",selectivity.by,".file.sp",sp))
+    F.rate = read.csv(fishing.file,sep=";")
+    fishing.folder = normalizePath(dirname(fishing.file))
+  }else{
+    
+    F.rate = getParameters(Param,paste0("mortality.fishing.rate.sp",sp),what="numeric")
+  }  
   #F_file = read.csv("C:/Users/Laure Velez/Downloads/F-squids.csv",sep=";")
   
   # Creation of a new parameters files in order to be modified
@@ -156,15 +162,25 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
         ParamFmsy["output.file.prefix"] = paste("Sp",sp,"F",Fval[i],sep="")
         #WriteOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
         #writing F fishing.byYear.sp0 = F
-        Time = F.seasonal[,1]
-        F_file = F.seasonal[,-1]
-        Names = names(F_file)
-        F_file = F_file*Fval[i]
-        F_file = cbind(Time,F_file)
-        names(F_file) = c("",substr(Names,2,length(Names)))
-        write.table(F_file,file.path(fishing.folder,paste0("F-",species,"_msy.csv")),row.names=FALSE,quote=FALSE,sep=";")
-        ParamFmsy[paste0("mortality.fishing.rate.byDt.by",selectivity.by,".file.sp",sp)] = file.path(fishing.folder,paste0("F-",species,"_msy.csv"))
-        writeOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
+        if(IsSeasonal){
+          
+          Time = F.rate[,1]
+          F_file = F.rate[,-1]
+          Names = names(F_file)
+          F_file = F_file*Fval[i]
+          F_file = cbind(Time,F_file)
+          names(F_file) = c("",substr(Names,2,length(Names)))
+          write.table(F_file,file.path(fishing.folder,paste0("F-",species,"_msy.csv")),row.names=FALSE,quote=FALSE,sep=";")
+          ParamFmsy[paste0("mortality.fishing.rate.byDt.by",selectivity.by,".file.sp",sp)] = file.path(fishing.folder,paste0("F-",species,"_msy.csv"))
+          writeOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
+        
+        }else{
+          
+          F_rate = F.rate*Fval[i]
+          ParamFmsy[paste0("mortality.fishing.rate.sp",sp)] = F_rate
+          writeOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
+          
+        }
         ### To run Osmose with R
         
         runOsmose(osmose.exec,java,paste0("configFmsy_sp",sp,".csv"),paste("output/Sp",sp,"F",Fval[i],sep=""))
