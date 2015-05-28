@@ -1,3 +1,4 @@
+
 F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.1,Sub_StepF=0.01,java="java",...){
   
   require(mgcv)
@@ -167,16 +168,34 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
           Time = F.rate[,1]
           F_file = F.rate[,-1]
           Names = names(F_file)
+          
+          
+          dtperYear = getParameters(Param,"simulation.time.ndtperyear",what="numeric")
+          Year = getParameters(Param,"simulation.time.nyear",what="numeric") - getParameters(Param,"output.start.year",what="numeric")
+     
+          if(dtperYear*Year!=dim(F.rate)[1]) error("F-file do not have the rigth dimension")
+          
+          b = seq(0,Year*dtperYear,dtperYear)
+          
+          for (l in 1:(length(b)-1)){
+            
+            F_file[(b[l]+1):b[l+1],] = F_file[(b[l]+1):b[l+1],]/rep(apply(F_file[(b[l]+1):b[l+1],],2,sum),1,each=dtperYear)
+            
+          }
+          
+          F_file[is.na(F_file)] = 0
+          F_file = as.matrix(F_file)
+          
           F_file = F_file*Fval[i]
           F_file = cbind(Time,F_file)
-          names(F_file) = c("",substr(Names,2,length(Names)))
+          colnames(F_file) = c("",substr(Names,2,length(Names)))
           write.table(F_file,file.path(fishing.folder,paste0("F-",species,"_msy.csv")),row.names=FALSE,quote=FALSE,sep=";")
           ParamFmsy[paste0("mortality.fishing.rate.byDt.by",selectivity.by,".file.sp",sp)] = file.path(fishing.folder,paste0("F-",species,"_msy.csv"))
           writeOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
         
         }else{
           
-          F_rate = F.rate*Fval[i]
+          F_rate = Fval[i]
           ParamFmsy[paste0("mortality.fishing.rate.sp",sp)] = F_rate
           writeOsmoseParameters(ParamFmsy,paste0("Fmsy-parameters_sp",sp,".csv"))
           
@@ -376,7 +395,7 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   #	mtext(paste("Fmsy",Res$Fmsy,sep="\n"),side=1,at=Res$Fmsy,col="blue")
   #dev.off()
   
-  pdf(paste0(,"output/Fmsy_R/Fmsy_sp",sp,".pdf"))
+  pdf(paste0(input.folder,"output/Fmsy_R/Fmsy_sp",sp,".pdf"))
   
   plot(datY$F, datY$Y, pch=19, col="gray", cex=0.5,main=paste("Sp",sp,sep=""))
   lines(Fs,Ys$fit, col="red", lwd=2)
