@@ -1,3 +1,4 @@
+#F_msy(sp=1,osmose.exec="../osmose-v3u2.jar",input.file="eec_all-parameters.csv",Restart=TRUE,Fmin=0,Fmax=2,StepF=0.1,Sub_StepF=0.01)
 
 F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.1,Sub_StepF=0.01,java="java",...){
   
@@ -18,7 +19,9 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
     species = getParameters(Param,paste0("species.name.sp",sp))
   }else{
     species=sp
-    sp = which(is.element(grep("species.name.sp",names(Param)),which(Param == species))) - 1
+    Numb = which(is.element(grep("species.name.sp",names(Param)),which(Param == species)))
+    Names = Param[grep("species.name.sp",names(Param))[Numb]]
+    sp = as.numeric(substr(names(Names),16,nchar(names(Names))))
   }
   
   # par = list()
@@ -71,7 +74,7 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   
   # Temporary file
   
-  if (length(list.files(pattern="FmsyTemp"))){
+  if (file.exists(paste0("FmsyTemp_sp",sp,".csv"))){
     FmsyTemp = read.csv(paste0("FmsyTemp_sp",sp,".csv"),header=T,sep=",",dec=".",row.names=1)
   }else{
     FmsyTemp = data.frame(iSteps=1,FcollapseUpper=NA,FmsyUpper=NA)
@@ -102,7 +105,7 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   
   # Do you want to restart?
   if(Restart==TRUE){
-    load(file.path(input.folder,paste0("output/Fmsy_R/Res",sp,")")))
+    load(file.path(input.folder,paste0("output/Fmsy_R/Res",sp)))
   }else{
     iSteps=1
     FcollapseUpper = NA
@@ -122,16 +125,16 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
     # To complete matrix F once FcollapseUpper is found
     #if (!is.na(FcollapseUpper)&is.na(F[(length(Fval)+1),NumEsp])){
     if (!is.na(FcollapseUpper)&i==(N_Fval+1)){
-      if(FcollapseUpper>0&FcollapseUpper<0.1){
-        FcollapseUpper=0.1
+      if(FcollapseUpper>=Fmin&FcollapseUpper<(Fmin+StepF)){
+        FcollapseUpper=Fmin+StepF
       }	
       Fval  = c(Fval,seq(FcollapseUpper-StepF,FcollapseUpper,Sub_StepF))
     }
     
     # To complete matrix F once FmsyUpper is found		
     if (!is.na(FmsyUpper)&i==(N_Fval+N_Fcollapse+1)){
-      if(FmsyUpper>=0&FmsyUpper<0.1){
-        FmsyUpper=0.1
+      if(FmsyUpper>=Fmin&FmsyUpper<(Fmin+StepF)){
+        FmsyUpper=Fmin+StepF
       }		
       Fval = c(Fval,rev(seq(FmsyUpper-StepF,FmsyUpper+StepF,Sub_StepF)))
     }
@@ -209,8 +212,9 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
         ### Load output files (Biomass and Yield)
         
         out = osmose2R(paste("output/Sp",sp,"F",Fval[i],sep=""))
-        biomass = getVar(out,"biomass")
-        yield = getVar(out,"yield")
+        biomass = out$global$biomass
+        yield = out$global$yield
+        #yield = getVar(out,"yield")
         #FilesBiomass = readOsmoseFiles(path=paste0("output/Sp",sp,"F",Fval[i]),type="biomass")
         #FilesYield = readOsmoseFiles(path=paste0("output/Sp",sp,"F",Fval[i]),type="yield")
         
@@ -226,18 +230,18 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
         
         if (Fval[i]==0) {	
           
-          Res$B0=mean(biomass[,species])
+          Res$B0=mean(biomass[,species,])
           cat("B0=",Res$B0,"\n")
           
         }
         
-        Res$B_Fvect[[i]]=biomass[,species]
-        Res$Y_Fvect[[i]]=yield[,species]
+        Res$B_Fvect[[i]]=apply(biomass[,species,],2,mean)
+        Res$Y_Fvect[[i]]=apply(yield[,species,],2,mean)
         #Res$B_CI[[i]] = FilesBiomassCI[NumEsp,]
         #Res$Y_CI[[i]] = FilesYieldCI[NumEsp,]
         
         # To check if FcollapseUpper is reached				
-        if(sum((mean(biomass[,species]))<=(10*Res$B0/100))>0&is.na(FcollapseUpper)){
+        if(sum((mean(biomass[,species,]))<=(10*Res$B0/100))>0&is.na(FcollapseUpper)){
           
           FcollapseUpper = Fval[i]
           FmsyTemp$FcollapseUpper = FcollapseUpper			
@@ -290,25 +294,20 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   
   ### Yield data
   
-  Ymean = vector()
+  #Ymean = vector()
   
-  for (k in 1:length(Res$Y_Fvect)){
+  #for (k in 1:length(Res$Y_Fvect)){
     
-    Ymean[k] = mean(Res$Y_Fvect[[k]])
+   # Ymean[k] = mean(Res$Y_Fvect[[k]])
     
-  }
+  #}
   
-  vect_F = Res$vect_F
+  Ymean = lapply(Res$Y_Fvect,mean)
+
   Yvect = Res$Y_Fvect
   
-  vectF = rep(vect_F[1],length(Yvect[[1]]))
-  
-  for (j in 2:length(vect_F)){
+  vectF = rep(Res$vect_F,each=(length(Yvect[[1]])))
     
-    vectF = c(vectF,rep(vect_F[j],length(Yvect[[j]])))
-    
-  }
-  
   datY = cbind(vectF,unlist(Yvect))
   
   datY = as.data.frame(datY)
@@ -336,25 +335,9 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   
   
   ### Biomass Data
-  
-  Bmean = vector()
-  
-  for (k in 1:length(Res$B_Fvect)){
+  Bmean = lapply(Res$B_Fvect,mean)
     
-    Bmean[k] = mean(Res$B_Fvect[[k]])
-    
-  }
-  
-  vect_F = Res$vect_F
   Bvect = Res$B_Fvect
-  
-  vectF = rep(vect_F[1],length(Bvect[[1]]))
-  
-  for (j in 2:length(vect_F)){
-    
-    vectF = c(vectF,rep(vect_F[j],length(Bvect[[j]])))
-    
-  }
   
   datB = cbind(vectF,unlist(Bvect))
   
@@ -395,7 +378,7 @@ F_msy <- function(sp,osmose.exec,input.file,Restart=FALSE,Fmin=0,Fmax=2,StepF=0.
   #	mtext(paste("Fmsy",Res$Fmsy,sep="\n"),side=1,at=Res$Fmsy,col="blue")
   #dev.off()
   
-  pdf(paste0(input.folder,"output/Fmsy_R/Fmsy_sp",sp,".pdf"))
+  pdf(paste0(input.folder,"/output/Fmsy_R/Fmsy_sp",sp,".pdf"))
   
   plot(datY$F, datY$Y, pch=19, col="gray", cex=0.5,main=paste("Sp",sp,sep=""))
   lines(Fs,Ys$fit, col="red", lwd=2)
