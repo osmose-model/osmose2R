@@ -6,7 +6,6 @@ Date: 2015-04-13
 Author: Ricardo Oliveros-Ramos
 Maintainer: Ricardo Oliveros-Ramos <ricardo.oliveros@gmail.com>
 Description: Capture and analize OSMOSE outputs and make main plot and table summaries.
-Depends: calibrationEA, stringr, R.utils
-Depends: calibrationEA
+Depends: stringr, R.utils
 License: TBD
 ByteCompile: TRUE
